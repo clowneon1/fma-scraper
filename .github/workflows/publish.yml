@@ -1,0 +1,55 @@
+name: Release and Publish
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Determine version bump
+        id: bump
+        run: |
+          LABELS="${{ join(github.event.pull_request.labels.*.name, ' ') }}"
+
+          if [[ "$LABELS" == *"release:major"* ]]; then
+            echo "BUMP=major" >> $GITHUB_ENV
+          elif [[ "$LABELS" == *"release:minor"* ]]; then
+            echo "BUMP=minor" >> $GITHUB_ENV
+          else
+            echo "BUMP=patch" >> $GITHUB_ENV
+          fi
+
+      - name: Bump version
+        run: |
+          npm version $BUMP -m "release: %s"
+
+      - name: Push version commit
+        run: |
+          git push
+          git push --tags
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,0 +1,23 @@
+name: Require Release Label
+
+on:
+  pull_request:
+    types: [opened, edited, labeled, unlabeled, synchronize]
+
+jobs:
+  check-label:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check release label
+        run: |
+          LABELS="${{ join(github.event.pull_request.labels.*.name, ' ') }}"
+
+          if [[ "$LABELS" == *"release:major"* ]] || \
+             [[ "$LABELS" == *"release:minor"* ]] || \
+             [[ "$LABELS" == *"release:patch"* ]]; then
+            echo "Release label found"
+          else
+            echo "❌ PR must include a release label"
+            exit 1
+          fi
