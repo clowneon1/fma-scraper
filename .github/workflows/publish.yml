@@ -1,20 +1,16 @@
-name: Publish to npm
+name: Test npm Auth
 
 on:
   push:
     branches:
-      - main
-
-concurrency:
-  group: release
-  cancel-in-progress: false
+      - dev
 
 jobs:
-  publish:
+  test-auth:
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: write
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -30,54 +26,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Debug info
       - name: Debug Node & npm
         run: |
           node -v
           npm -v
 
-      - name: Debug package info
+      - name: Check package info
         run: |
           npm pkg get name
           npm pkg get version
 
       - name: Verify npm authentication
         run: npm whoami
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Preview publish
-        run: npm publish --dry-run
-
-      # Publish package
-      - name: Publish package
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      # Get version
-      - name: Get package version
-        id: version
-        run: |
-          echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
-      # Create release with usage instructions
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.version.outputs.version }}
-          generate_release_notes: true
-          body: |
-            ## Installation
-
-            ```bash
-            npm i @codepenguin/fma-scraper
-            ```
-
-            ## Usage
-
-            ```javascript
-            const { scrape } = require("@codepenguin/fma-scraper");
-            ```
-
-            See the README for full examples.
+      - name: Check registry
+        run: npm config get registry
