@@ -5,18 +5,20 @@ A lightweight **Node.js scraper and downloader for Free Music Archive (FMA)** th
 
 The tool extracts track metadata from the page’s `data-track-info` attributes and retrieves the direct `fileUrl` pointing to the MP3 hosted on the FMA CDN.
 
-This project is designed to be **simple, scriptable, and reusable** for building music ingestion pipelines, research datasets, or personal music libraries.
+This project is designed to be **simple, scriptable, and reusable** for building music ingestion pipelines, research datasets, or personal music libraries. It expands on the earlier version described in the original README with improved CLI controls and concurrent downloads.
 ---
 
 # Features
 
 - Scrapes tracks from **Free Music Archive search pages**
-- Downloads MP3 files automatically
-- Configurable scraping parameters
-- CLI usage for easy automation
-- Structured logging with rotating logs
+- Automatically downloads MP3 files
+- **Concurrent downloads** for faster scraping
+- **Auto-pagination** support
+- Fully configurable **CLI flags**
+- License filtering (**Public Domain / CC BY**)
 - Environment-based configuration
-- Safe download limits to avoid excessive scraping
+- Structured logging
+- Safe download limits to prevent excessive scraping
 
 ---
 
@@ -38,29 +40,27 @@ extract `fileUrl`
 download MP3
 ```
 
-The `fileUrl` field points directly to the FMA CDN:
+Each MP3 file is downloaded directly from the FMA CDN:
 
 ```
 https://files.freemusicarchive.org/storage-freemusicarchive-org/music/...
 ```
 
-This allows downloading the track without authentication.
-
 ---
 
 # Installation
 
-You can install the scraper either via **npm** or by cloning the repository.
+You can install the scraper via **npm** or by cloning the repository.
 
-### Install via npm
+## Install via npm
 
-```
+```bash
 npm install @codepenguin/fma-scraper
 ```
 
-### Install via GitHub
+## Install via GitHub
 
-```
+```bash
 git clone https://github.com/clowneon1/fma-scraper.git
 cd fma-scraper
 npm install
@@ -70,62 +70,196 @@ npm install
 
 # Configuration
 
-Create a `.env` file:
+Create a `.env` file in the project root:
 
-```
+```env
 FMA_DEFAULT_GENRE=Jazz
 FMA_FETCH_PAGES=2
 FMA_FETCH_LIMIT=5
+FMA_CONCURRENCY=5
 ```
 
-| Variable          | Description                          |
-| ----------------- | ------------------------------------ |
-| FMA_DEFAULT_GENRE | Default genre if none is provided    |
-| FMA_FETCH_PAGES   | Number of search pages to crawl      |
-| FMA_FETCH_LIMIT   | Maximum number of tracks to download |
+| Variable            | Description                       |
+| ------------------- | --------------------------------- |
+| `FMA_DEFAULT_GENRE` | Default genre if none is provided |
+| `FMA_FETCH_PAGES`   | Default number of pages           |
+| `FMA_FETCH_LIMIT`   | Maximum number of downloads       |
+| `FMA_CONCURRENCY`   | Worker concurrency                |
 
 ---
 
-# Usage
+# CLI Usage
 
 Run the scraper using the CLI:
 
-```
-node cli.js
-```
-
-This will use values from `.env`.
-
-You can also override them:
-
-```
-node cli.js Jazz 5 20
+```bash
+node cli.js [options]
 ```
 
-Meaning:
+If installed globally or via npm:
 
-```
-genre = Jazz
-pages = 5
-download limit = 20 tracks
+```bash
+npx @codepenguin/fma-scraper [options]
 ```
 
-If installed via npm, you can also run:
+---
 
-```
-npx @codepenguin/fma-scraper Jazz 5 20
+# CLI Options
+
+| Flag             | Description                              |
+| ---------------- | ---------------------------------------- |
+| `--search`       | Quick search keyword                     |
+| `--genre`        | Filter by genre                          |
+| `--pageSize`     | Results per page                         |
+| `--pages`        | Number of pages to scrape                |
+| `--limit`        | Maximum downloads                        |
+| `--auto`         | Automatically paginate until results end |
+| `--sort`         | Sorting field                            |
+| `--direction`    | Sort direction (`0` desc, `1` asc)       |
+| `--concurrency`  | Number of concurrent downloads           |
+| `--publicDomain` | Include Public Domain tracks             |
+| `--ccby`         | Include CC BY tracks                     |
+| `--instrumental` | Only instrumental tracks                 |
+| `--help`         | Show CLI help                            |
+
+---
+
+# CLI Help
+
+Display help information:
+
+```bash
+node cli.js --help
 ```
 
 Example output:
 
 ```
-info: Starting FMA scraper
-info: Opening search page
-info: Collected 20 track pages
-info: Saved The_Great_Red_Spot.mp3
-info: Scraping finished
-info: Downloaded 5 tracks
+FMA Scraper CLI
+
+Usage:
+  node cli.js [options]
+
+Options:
+  --search
+  --genre
+  --pages
+  --pageSize
+  --limit
+  --auto
+  --sort
+  --direction
+  --concurrency
+  --publicDomain
+  --ccby
+  --instrumental
 ```
+
+---
+
+# Examples
+
+## Basic Search
+
+```bash
+node cli.js --search=lofi
+```
+
+---
+
+## Download 30 Tracks
+
+```bash
+node cli.js --search=lofi --limit=30
+```
+
+---
+
+## Concurrent Downloads
+
+```bash
+node cli.js --search=lofi --limit=30 --concurrency=5
+```
+
+Recommended values:
+
+| Concurrency | Use Case    |
+| ----------- | ----------- |
+| 3           | Very safe   |
+| 5           | Recommended |
+| 10          | Aggressive  |
+
+---
+
+## Auto Pagination
+
+```bash
+node cli.js --search=lofi --auto --limit=100
+```
+
+The scraper will automatically continue until:
+
+- no more tracks are found
+- or the download limit is reached
+
+---
+
+## Genre Filter
+
+```bash
+node cli.js --search=lofi --genre=Classical
+```
+
+---
+
+## Sorting Example
+
+```bash
+node cli.js --search=lofi --sort=artist --direction=1
+```
+
+---
+
+# License Filters
+
+Filter tracks by Creative Commons license.
+
+Example flags:
+
+```bash
+--publicDomain
+--ccby
+```
+
+Example command:
+
+```bash
+node cli.js --search=lofi --publicDomain --ccby
+```
+
+These licenses allow **commercial usage and streaming**.
+
+---
+
+# Full Example Command
+
+```bash
+node cli.js \
+--search=lofi \
+--genre=Classical \
+--pageSize=20 \
+--sort=_score \
+--direction=0 \
+--publicDomain \
+--ccby \
+--auto \
+--limit=50 \
+--concurrency=5
+```
+
+---
+
+# Output
 
 Downloaded files are saved to:
 
@@ -139,44 +273,22 @@ Logs are written to:
 /logs
 ```
 
----
-
-# Search Parameters
-
-The scraper uses the FMA search endpoint:
+Example output:
 
 ```
-https://freemusicarchive.org/search
-```
-
-Example request:
-
-```
-https://freemusicarchive.org/search?search-genre=Hip-Hop&pageSize=20&page=1&sort=_score&d=0
-```
-
-Supported parameters:
-
-| Parameter    | Description      |
-| ------------ | ---------------- |
-| search-genre | Genre filter     |
-| pageSize     | Results per page |
-| page         | Page number      |
-| sort         | Sorting method   |
-| d            | Sort direction   |
-
-Default sorting:
-
-```
-sort=_score
-d=0
+info: Starting FMA scraper
+info: Opening search page
+info: Found 20 track pages
+info: Saved track1.mp3
+info: Download limit reached
+info: Scraping finished
 ```
 
 ---
 
 # Available Genres
 
-Common genres available on FMA include:
+Common FMA genres include:
 
 ```
 Ambient
@@ -201,13 +313,11 @@ Soundtrack
 Spoken
 ```
 
-Additional subgenres may exist depending on search filters.
-
 ---
 
-# Available Sorting Options
+# Sorting Options
 
-Sorting parameters supported by the search endpoint:
+Supported sort fields:
 
 ```
 _score
@@ -234,14 +344,13 @@ Example:
 
 # Logging
 
-Logging is implemented using Winston.
+Logging is implemented using **Winston**.
 
 Features:
 
 - structured logs
 - rotating log files
 - configurable log levels
-- protection against excessively large logs
 
 Logs are stored in:
 
@@ -261,66 +370,6 @@ Always respect the licensing terms associated with each track.
 
 ---
 
-# Future Improvements
-
-Planned features include:
-
-### Concurrent Downloads
-
-Current downloads are sequential.
-
-Future versions will support **parallel downloads with configurable concurrency limits**, which will significantly improve scraping performance while still respecting remote servers.
-
-Example concept:
-
-```
-maxConcurrentDownloads = 5
-```
-
-This allows downloading multiple tracks simultaneously without overwhelming the site.
-
----
-
-### Single Track Download
-
-Currently the scraper focuses on **genre-based scraping**.
-
-Future support will include:
-
-```
-node cli.js --track https://freemusicarchive.org/music/.../track
-```
-
-This will download a **single track directly** without scanning genre pages.
-
----
-
-### Pagination Automation
-
-Automatically crawl large result sets:
-
-```
-page 1 → page N
-```
-
-allowing large dataset collection.
-
----
-
-### CLI Improvements
-
-Future CLI flags:
-
-```
---genre
---pages
---limit
---sort
---track
-```
-
----
-
 # License
 
 MIT License
@@ -332,5 +381,3 @@ MIT License
 This tool downloads publicly available audio files from Free Music Archive.
 
 Users are responsible for ensuring that downloaded content complies with the original licensing terms provided by the artists.
-
----
