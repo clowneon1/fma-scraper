@@ -13,17 +13,71 @@ jobs:
   publish:
     runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v4
+    permissions:
+      contents: write
 
-      - uses: actions/setup-node@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
+          scope: '@codepenguin'
 
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Publish
+      # Debug info
+      - name: Debug Node & npm
+        run: |
+          node -v
+          npm -v
+
+      - name: Debug package info
+        run: |
+          npm pkg get name
+          npm pkg get version
+
+      - name: Verify npm authentication
+        run: npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Preview publish
+        run: npm publish --dry-run
+
+      # Publish package
+      - name: Publish package
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Get version
+      - name: Get package version
+        id: version
+        run: |
+          echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      # Create release with usage instructions
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          body: |
+            ## Installation
+
+            ```bash
+            npm i @codepenguin/fma-scraper
+            ```
+
+            ## Usage
+
+            ```javascript
+            const { scrape } = require("@codepenguin/fma-scraper");
+            ```
+
+            See the README for full examples.
