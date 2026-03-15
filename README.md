@@ -1,3 +1,4 @@
+---
 # FMA Scraper
 
 A lightweight **Node.js scraper and downloader for Free Music Archive (FMA)** that fetches publicly available tracks from search pages and downloads the corresponding MP3 files.
@@ -5,7 +6,6 @@ A lightweight **Node.js scraper and downloader for Free Music Archive (FMA)** th
 The tool extracts track metadata from the page’s `data-track-info` attributes and retrieves the direct `fileUrl` pointing to the MP3 hosted on the FMA CDN.
 
 This project is designed to be **simple, scriptable, and reusable** for building music ingestion pipelines, research datasets, or personal music libraries.
-
 ---
 
 # Features
@@ -50,26 +50,21 @@ This allows downloading the track without authentication.
 
 # Installation
 
-Clone the repository:
+You can install the scraper either via **npm** or by cloning the repository.
+
+### Install via npm
 
 ```
-git clone https://github.com/YOUR_USERNAME/fma-scraper.git
+npm install @codepenguin/fma-scraper
+```
+
+### Install via GitHub
+
+```
+git clone https://github.com/clowneon1/fma-scraper.git
 cd fma-scraper
-```
-
-Install dependencies:
-
-```
 npm install
 ```
-
-Required packages include:
-
-- axios
-- cheerio
-- dotenv
-- winston
-- winston-daily-rotate-file
 
 ---
 
@@ -113,6 +108,12 @@ Meaning:
 genre = Jazz
 pages = 5
 download limit = 20 tracks
+```
+
+If installed via npm, you can also run:
+
+```
+npx @codepenguin/fma-scraper Jazz 5 20
 ```
 
 Example output:
@@ -331,3 +332,5 @@ MIT License
 This tool downloads publicly available audio files from Free Music Archive.
 
 Users are responsible for ensuring that downloaded content complies with the original licensing terms provided by the artists.
+
+---
