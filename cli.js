@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const logger = require("./src/utils/logger");
-const { scrape } = require("./src/scraper/fma-scraper.service");
+const { scrape } = require("./src/services/fma-scraper.service");
 
 async function run() {
   try {
