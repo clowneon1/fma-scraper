@@ -3,9 +3,6 @@ name: Check Version Bump
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
-  push:
-    branches-ignore:
-      - main
 
 jobs:
   check-version:
