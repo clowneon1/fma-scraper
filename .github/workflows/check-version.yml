@@ -2,7 +2,10 @@ name: Check Version Bump
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  push:
+    branches-ignore:
+      - main
 
 jobs:
   check-version:
@@ -20,7 +23,7 @@ jobs:
       - name: Get PR labels
         id: labels
         run: |
-          echo "labels=${{ join(github.event.pull_request.labels.*.name, ',') }}" >> $GITHUB_OUTPUT
+          echo "labels=${{ join(github.event.pull_request.labels.*.name, ',') }}" >> $GITHUB_OUTPUT || true
 
       - name: Check version bump
         run: |
