@@ -1,0 +1,27 @@
+{
+  "name": "fma-scraper",
+  "version": "1.0.0",
+  "description": "Free Music Archive scraper and downloader",
+  "main": "index.js",
+  "bin": {
+    "fma-scraper": "./cli.js"
+  },
+  "scripts": {
+    "start": "node cli.js"
+  },
+  "keywords": [
+    "fma",
+    "scraper",
+    "free-music-archive",
+    "music-downloader"
+  ],
+  "author": "YOUR_NAME",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.0",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.4.0",
+    "winston": "^3.13.0",
+    "winston-daily-rotate-file": "^5.0.0"
+  }
+}
