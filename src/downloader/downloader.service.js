@@ -1,7 +1,8 @@
 const fs = require("fs");
 const path = require("path");
+const { pipeline } = require("stream/promises");
 
-const axios = require("../config/axios.config");
+const { axiosClient: axios } = require("../config/axios.config");
 const logger = require("../utils/logger");
 
 const MUSIC_DIR = path.join(process.cwd(), "music");
@@ -10,35 +11,47 @@ if (!fs.existsSync(MUSIC_DIR)) {
   fs.mkdirSync(MUSIC_DIR, { recursive: true });
 }
 
-async function downloadFile(url) {
-  const filename = url.split("/").pop();
+function sanitizeFileName(name) {
+  return name
+    .replace(/[<>:"/\\|?*]+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function downloadFile(url, name, retries = 2) {
+  const filename = sanitizeFileName(name || url.split("/").pop()) + ".mp3";
   const filepath = path.join(MUSIC_DIR, filename);
 
   if (fs.existsSync(filepath)) {
     logger.info(`Skipping existing ${filename}`);
-
     return false;
   }
 
-  const res = await axios({
-    url,
-    method: "GET",
-    responseType: "stream",
-  });
+  for (let attempt = 1; attempt <= retries + 1; attempt++) {
+    try {
+      const res = await axios({
+        url,
+        method: "GET",
+        responseType: "stream",
+        timeout: 30000,
+      });
 
-  const writer = fs.createWriteStream(filepath);
+      const writer = fs.createWriteStream(filepath);
 
-  res.data.pipe(writer);
+      await pipeline(res.data, writer);
 
-  return new Promise((resolve, reject) => {
-    writer.on("finish", () => {
       logger.info(`Saved ${filename}`);
 
-      resolve(true);
-    });
+      return true;
+    } catch (err) {
+      logger.warn(`Download failed (${attempt}) for ${filename}`);
 
-    writer.on("error", reject);
-  });
+      if (attempt > retries) {
+        logger.error(`Giving up on ${filename}`);
+        return false;
+      }
+    }
+  }
 }
 
 module.exports = { downloadFile };
