@@ -1,5 +1,5 @@
 {
-  "name": "fma-scraper",
+  "name": "@codepenguin/fma-scraper",
   "version": "1.0.0",
   "description": "Free Music Archive scraper and downloader",
   "main": "index.js",
