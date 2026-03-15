@@ -1,16 +1,20 @@
-name: Test npm Auth
+name: Publish to npm
 
 on:
   push:
     branches:
-      - dev
+      - main
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
-  test-auth:
+  publish:
     runs-on: ubuntu-latest
 
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -20,24 +24,36 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: https://registry.npmjs.org
-          scope: '@codepenguin'
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Debug Node & npm
-        run: |
-          node -v
-          npm -v
-
-      - name: Check package info
-        run: |
-          npm pkg get name
-          npm pkg get version
+      - name: Configure npm auth
+        run: npm config set //registry.npmjs.org/:_authToken=${NPM_TOKEN}
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Verify npm authentication
         run: npm whoami
 
-      - name: Check registry
-        run: npm config get registry
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Preview publish
+        run: npm publish --dry-run
+
+      - name: Publish package
+        run: npm publish --access public
+
+      - name: Get version
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          body: |
+            ## Installation
+
+            ```bash
+            npm i @codepenguin/fma-scraper
+            ```
