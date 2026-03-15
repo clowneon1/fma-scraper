@@ -1,6 +1,6 @@
 {
   "name": "@codepenguin/fma-scraper",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Free Music Archive scraper and downloader for fetching tracks by genre or search parameters.",
   "main": "index.js",
   "bin": {
