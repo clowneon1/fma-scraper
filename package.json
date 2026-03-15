@@ -1,22 +1,34 @@
 {
   "name": "@codepenguin/fma-scraper",
-  "version": "1.0.1",
-  "description": "Free Music Archive scraper and downloader",
+  "version": "1.0.2",
+  "description": "Free Music Archive scraper and downloader for fetching tracks by genre or search parameters.",
   "main": "index.js",
   "bin": {
     "fma-scraper": "./cli.js"
   },
-  "scripts": {
-    "start": "node cli.js"
+  "repository": "github:clowneon1/fma-scraper",
+  "homepage": "https://github.com/clowneon1/fma-scraper",
+  "bugs": {
+    "url": "https://github.com/clowneon1/fma-scraper/issues"
   },
   "keywords": [
     "fma",
-    "scraper",
     "free-music-archive",
-    "music-downloader"
+    "scraper",
+    "music",
+    "downloader",
+    "nodejs",
+    "cheerio",
+    "axios"
   ],
-  "author": "YOUR_NAME",
+  "author": "CodePenguin",
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node cli.js"
+  },
   "dependencies": {
     "axios": "^1.7.0",
     "cheerio": "^1.0.0",
