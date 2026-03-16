@@ -21,7 +21,7 @@
     "cheerio",
     "axios"
   ],
-  "author": "CodePenguin",
+  "author": "clowneon1",
   "license": "MIT",
   "engines": {
     "node": ">=18"
